@@ -4,16 +4,17 @@ var request = require('request')
 const environment = process.env.NODE_ENV || 'test';
 const configuration = require('../knexfile')[environment];
 const database = require('knex')(configuration);
+const Secret = require('../lib/models/secret')
 
 describe('Server', function(){
   before(function(done){
-    this.port = 9876
+    this.port = 9872
     this.server = app.listen(this.port, function(err, result){
       if(err) { return done(err) }
       done()
     })
     this.request = request.defaults({
-      baseUrl: 'http://localhost:9876'
+      baseUrl: 'http://localhost:9872'
     })
   })
 
@@ -44,12 +45,10 @@ describe('Server', function(){
   })
 
   describe('GET /api/secrets/:id', function(){
-    beforeEach(function(done) {
-      database.raw(
-        'INSERT INTO secrets (message, created_at) VALUES (?, ?)',
-        ["I open bananas from the wrong side", new Date]
-      ).then(function() { done() })
-    })
+      beforeEach((done) => {
+          Secret.create("I open bananas from the wrong side")
+          .then(() => done())
+  })
 
     afterEach(function(done) {
       database.raw('TRUNCATE secrets RESTART IDENTITY')
@@ -82,9 +81,14 @@ describe('Server', function(){
   })
 
   describe('POST /api/secrets', function(){
-    beforeEach(function(done) {
-      database.raw('TRUNCATE secrets RESTART IDENTITY')
-      .then(function() { done() })
+    beforeEach((done) => {
+      Secret.create("I open bananas from the wrong side")
+      .then(() => done())
+    })
+
+    afterEach((done) => {
+      Secret.destroyAll()
+      .then(() => done())
     })
 
     it('should receive and store data', function(done){

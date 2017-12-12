@@ -1,6 +1,7 @@
 var express = require('express')
 var app = express()
 var bodyParser = require('body-parser')
+const Secret = require('./lib/models/secret')
 const environment = process.env.NODE_ENV || 'development';
 const configuration = require('./knexfile')[environment];
 const database = require('knex')(configuration);
@@ -27,21 +28,18 @@ app.get('/api/secrets/:id', function(request, response){
   })
 })
 
-app.post('/api/secrets', function(request, response){
-  var id = Date.now()
-  var message = request.body.message
+app.post('/api/secrets', (request, response) => {
+  let id = Date.now()
+  let message = request.body.message
 
   if (!message) {
     return response.status(422).send({ error: "No message property provided!"})
   }
 
-  database.raw(
-    'INSERT INTO secrets (message, created_at) VALUES (?, ?) RETURNING id, message',
-    [message, new Date]
-  )
-  .then(function(data){
-    response.status(201).json(data.rows[0])
-  })
+  Secret.create(message)
+    .then((data) => {
+      response.status(201).json(data.rows[0])
+    })
 })
 
 if(!module.parent) {
