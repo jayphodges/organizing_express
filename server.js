@@ -2,6 +2,7 @@ var express = require('express')
 var app = express()
 var bodyParser = require('body-parser')
 const Secret = require('./lib/models/secret')
+const secretController = require('./lib/controllers/secret')
 const environment = process.env.NODE_ENV || 'development';
 const configuration = require('./knexfile')[environment];
 const database = require('knex')(configuration);
@@ -17,17 +18,18 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.get('/', function(request, response) {
   response.send(app.locals.title)
 })
+app.get('/api/secrets/:id', secretController.getSecret)
 
-app.get('/api/secrets/:id', function(request, response){
-  var id = request.params.id
-
-  Secret.show(id)
-    .then(function(data) {
-      if (data.rowCount == 0) { return response.sendStatus(404) }
-
-      response.json(data.rows[0])
-    })
-  })
+// app.get('/api/secrets/:id', function(request, response){
+//   var id = request.params.id
+//
+//   Secret.show(id)
+//     .then(function(data) {
+//       if (data.rowCount == 0) { return response.sendStatus(404) }
+//
+//       response.json(data.rows[0])
+//     })
+//   })
 
 app.post('/api/secrets', (request, response) => {
   let id = Date.now()
