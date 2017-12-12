@@ -20,13 +20,14 @@ app.get('/', function(request, response) {
 
 app.get('/api/secrets/:id', function(request, response){
   var id = request.params.id
-  database.raw("SELECT * FROM secrets WHERE id=?", [id])
-  .then(function(data){
-    if (data.rowCount == 0) { return response.sendStatus(404) }
 
-    response.json(data.rows[0])
+  Secret.show(id)
+    .then(function(data) {
+      if (data.rowCount == 0) { return response.sendStatus(404) }
+
+      response.json(data.rows[0])
+    })
   })
-})
 
 app.post('/api/secrets', (request, response) => {
   let id = Date.now()
